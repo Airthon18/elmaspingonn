@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego de Meteoritos</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: black;
+            font-family: 'Arial', sans-serif;
+        }
+        canvas {
+            display: block;
+        }
+        #score {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 24px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div id="score">Puntuación: 0</div>
+    <canvas id="gameCanvas"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+
+        // Configuración del canvas
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Cargar imágenes
+        const naveImg = new Image();
+        naveImg.src = 'images.jpg'; // Imagen de la nave
+        const meteoritoImg = new Image();
+        meteoritoImg.src = 'aaaa.jpg'; // Imagen del meteorito
+
+        // Variables del juego
+        const nave = {
+            x: canvas.width / 2 - 25,
+            y: canvas.height - 100,
+            width: 100,
+            height: 100,
+            speed: 100
+        };
+
+        let meteoritos = [];
+        let score = 0;
+        let gameOver = false;
+
+        // Crear un meteorito
+        function crearMeteorito() {
+            const x = Math.random() * (canvas.width - 50);
+            const y = -50;
+            const speed = 2 + Math.random() * 3;
+            meteoritos.push({ x, y, width: 500, height: 500, speed });
+        }
+
+        // Dibujar la nave
+        function drawNave() {
+            ctx.drawImage(naveImg, nave.x, nave.y, nave.width, nave.height);
+        }
+
+        // Dibujar los meteoritos
+        function drawMeteoritos() {
+            meteoritos.forEach(meteorito => {
+                ctx.drawImage(meteoritoImg, meteorito.x, meteorito.y, meteorito.width, meteorito.height);
+            });
+        }
+
+        // Actualizar la posición de los meteoritos
+        function updateMeteoritos() {
+            for (let i = meteoritos.length - 1; i >= 0; i--) {
+                meteoritos[i].y += meteoritos[i].speed;
+
+                // Eliminar meteoritos que salen de la pantalla
+                if (meteoritos[i].y > canvas.height) {
+                    meteoritos.splice(i, 1);
+                    score++;
+                    scoreElement.textContent = `Puntuación: ${score}`;
+                }
+
+                // Detectar colisión con la nave
+                if (
+                    nave.x < meteoritos[i].x + meteoritos[i].width &&
+                    nave.x + nave.width > meteoritos[i].x &&
+                    nave.y < meteoritos[i].y + meteoritos[i].height &&
+                    nave.y + nave.height > meteoritos[i].y
+                ) {
+                    gameOver = true;
+                    alert(`¡Game Over! Puntuación: ${score}`);
+                    document.location.reload();
+                }
+            }
+        }
+
+        // Bucle principal del juego
+        function gameLoop() {
+            if (gameOver) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Dibujar y actualizar elementos
+            drawNave();
+            drawMeteoritos();
+            updateMeteoritos();
+
+            // Crear nuevos meteoritos
+            if (Math.random() < 0.02) {
+                crearMeteorito();
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Control de la nave
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'ArrowLeft' && nave.x > 0) {
+                nave.x -= nave.speed;
+            }
+            if (e.code === 'ArrowRight' && nave.x + nave.width < canvas.width) {
+                nave.x += nave.speed;
+            }
+        });
+
+        // Iniciar el juego
+        gameLoop();
+    </script>
+</body>
+</html>
